@@ -1,0 +1,134 @@
+-- Customizable Options
+local noclipEnabled = false
+local flyEnabled = false
+local flySpeed = 50
+local speedEnabled = false
+local walkSpeed = 16
+local aimbotEnabled = false
+local ammoEnabled = false
+local antiKickEnabled = true
+
+-- Services
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+-- Player and Character Variables
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Function to toggle noclip
+local function toggleNoclip(enabled)
+    local char = player.Character
+    if char then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = not enabled
+            end
+        end
+    end
+end
+
+-- Function to toggle fly mode
+local function toggleFly(enabled)
+    if enabled then
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+        bodyVelocity.Parent = humanoidRootPart
+        
+        RunService.RenderStepped:Connect(function()
+            if flyEnabled then
+                bodyVelocity.Velocity = (UserInputService:GetMouseDelta() * flySpeed) + Vector3.new(0, 50, 0)
+            end
+        end)
+    else
+        -- Remove BodyVelocity if fly is disabled
+        local bodyVelocity = humanoidRootPart:FindFirstChildOfClass("BodyVelocity")
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+        end
+    end
+end
+
+-- Function to adjust walk speed
+local function adjustSpeed(enabled, speed)
+    if enabled then
+        humanoid.WalkSpeed = speed
+    else
+        humanoid.WalkSpeed = 16
+    end
+end
+
+-- Function to enable aimbot
+local function toggleAimbot(enabled)
+    if enabled then
+        -- Simplified aimbot logic; replace with actual aimbot code
+        RunService.RenderStepped:Connect(function()
+            if aimbotEnabled then
+                local mouse = player:GetMouse()
+                -- Aim at target logic here
+            end
+        end)
+    end
+end
+
+-- Function to manage ammo (placeholder logic)
+local function toggleAmmo(enabled)
+    if enabled then
+        -- Example logic for ammo management
+        print("Ammo management enabled")
+    end
+end
+
+-- Function to handle anti-kick
+local function setupAntiKick(enabled)
+    if enabled then
+        -- Example anti-kick logic
+        local player = Players.LocalPlayer
+        local function onPlayerChatted(message)
+            if message:lower() == "kick" then
+                print("Attempted kick detected")
+                -- Handle or ignore the kick attempt
+            end
+        end
+        player.Chatted:Connect(onPlayerChatted)
+    end
+end
+
+-- Example to apply options
+toggleNoclip(noclipEnabled)
+toggleFly(flyEnabled)
+adjustSpeed(speedEnabled, walkSpeed)
+toggleAimbot(aimbotEnabled)
+toggleAmmo(ammoEnabled)
+setupAntiKick(antiKickEnabled)
+
+-- Function to handle user inputs for toggling features
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.F then
+            flyEnabled = not flyEnabled
+            toggleFly(flyEnabled)
+        elseif input.KeyCode == Enum.KeyCode.N then
+            noclipEnabled = not noclipEnabled
+            toggleNoclip(noclipEnabled)
+        elseif input.KeyCode == Enum.KeyCode.S then
+            speedEnabled = not speedEnabled
+            adjustSpeed(speedEnabled, walkSpeed)
+        elseif input.KeyCode == Enum.KeyCode.A then
+            aimbotEnabled = not aimbotEnabled
+            toggleAimbot(aimbotEnabled)
+        elseif input.KeyCode == Enum.KeyCode.M then
+            ammoEnabled = not ammoEnabled
+            toggleAmmo(ammoEnabled)
+        elseif input.KeyCode == Enum.KeyCode.K then
+            antiKickEnabled = not antiKickEnabled
+            setupAntiKick(antiKickEnabled)
+        end
+    end
+end)
