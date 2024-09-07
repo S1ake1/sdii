@@ -1,147 +1,201 @@
--- Services
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Player and Character Variables
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local Window = Rayfield:CreateWindow({
+    Name = "🔥 Example Script Hub | Game 🔫",
+    LoadingTitle = "🔫 Gun Simulator 💥",
+    LoadingSubtitle = "by 1_F0",
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = nil,
+        FileName = "Example Hub"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvitelink",
+        RememberJoins = true
+    },
+    KeySystem = true,
+    KeySettings = {
+        Title = "Key | Youtube Hub",
+        Subtitle = "Key System",
+        Note = "Key In Discord Server",
+        FileName = "YoutubeHubKey1",
+        SaveKey = false,
+        GrabKeyFromSite = true,
+        Key = {"https://pastebin.com/raw/AtgzSPWK"}
+    }
+})
 
--- Customizable Options
-local noclipEnabled = false
-local flyEnabled = false
-local flySpeed = 50
-local speedEnabled = false
-local walkSpeed = 16
-local aimbotEnabled = false
-local ammoEnabled = false
-local antiKickEnabled = true
+local MainTab = Window:CreateTab("🏠 Home", nil)
+local MainSection = MainTab:CreateSection("Main")
 
--- Create GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "CheatMenu"
-screenGui.Parent = player.PlayerGui
+-- Infinite Jump Toggle
+local Button = MainTab:CreateButton({
+    Name = "Infinite Jump Toggle",
+    Callback = function()
+        _G.infinjump = not _G.infinjump
+        if _G.infinJumpStarted == nil then
+            _G.infinJumpStarted = true
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Youtube Hub",
+                Text = "Infinite Jump Activated!",
+                Duration = 5
+            })
+            local plr = game:GetService('Players').LocalPlayer
+            local m = plr:GetMouse()
+            m.KeyDown:connect(function(k)
+                if _G.infinjump and k:byte() == 32 then
+                    local humanoid = plr.Character:FindFirstChildOfClass('Humanoid')
+                    if humanoid then
+                        humanoid:ChangeState('Jumping')
+                        wait()
+                        humanoid:ChangeState('Seated')
+                    end
+                end
+            end)
+        end
+    end
+})
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0.3, 0, 0.5, 0)
-frame.Position = UDim2.new(0.1, 0, 0.25, 0)
-frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-frame.BackgroundTransparency = 0.5
-frame.Parent = screenGui
+-- WalkSpeed Slider
+local SliderWS = MainTab:CreateSlider({
+    Name = "WalkSpeed Slider",
+    Range = {1, 350},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Flag = "sliderws",
+    Callback = function(Value)
+        local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+        if humanoid then
+            humanoid.WalkSpeed = Value
+        end
+    end
+})
 
-local function createButton(name, position, toggleFunction)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 0.1, 0)
-    button.Position = position
-    button.Text = name
-    button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    button.TextColor3 = Color3.fromRGB(0, 0, 0)
-    button.Parent = frame
+-- JumpPower Slider
+local SliderJP = MainTab:CreateSlider({
+    Name = "JumpPower Slider",
+    Range = {1, 350},
+    Increment = 1,
+    Suffix = "Power",
+    CurrentValue = 50,
+    Flag = "sliderjp",
+    Callback = function(Value)
+        local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+        if humanoid then
+            humanoid.JumpPower = Value
+        end
+    end
+})
 
-    button.MouseButton1Click:Connect(function()
-        toggleFunction()
-    end)
-end
-
-createButton("Toggle Noclip", UDim2.new(0, 0, 0, 0), function()
-    noclipEnabled = not noclipEnabled
-    toggleNoclip(noclipEnabled)
-end)
-
-createButton("Toggle Fly", UDim2.new(0, 0, 0.1, 0), function()
-    flyEnabled = not flyEnabled
-    toggleFly(flyEnabled)
-end)
-
-createButton("Toggle Speed", UDim2.new(0, 0, 0.2, 0), function()
-    speedEnabled = not speedEnabled
-    adjustSpeed(speedEnabled, walkSpeed)
-end)
-
-createButton("Toggle Aimbot", UDim2.new(0, 0, 0.3, 0), function()
-    aimbotEnabled = not aimbotEnabled
-    toggleAimbot(aimbotEnabled)
-end)
-
-createButton("Toggle Ammo", UDim2.new(0, 0, 0.4, 0), function()
-    ammoEnabled = not ammoEnabled
-    toggleAmmo(ammoEnabled)
-end)
-
-createButton("Toggle Anti-Kick", UDim2.new(0, 0, 0.5, 0), function()
-    antiKickEnabled = not antiKickEnabled
-    setupAntiKick(antiKickEnabled)
-end)
-
--- Cheat Functions
-local function toggleNoclip(enabled)
-    local char = player.Character
-    if char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = not enabled
+-- Noclip Toggle
+local NoclipToggle = MainTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "noclip",
+    Callback = function(Value)
+        _G.noclip = Value
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character
+        if char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.CanCollide = not Value
+                for _, v in pairs(char:GetChildren()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = not Value
+                    end
+                end
             end
         end
     end
-end
+})
 
-local function toggleFly(enabled)
-    if enabled then
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-        bodyVelocity.Parent = humanoidRootPart
-
-        RunService.RenderStepped:Connect(function()
-            if flyEnabled then
-                bodyVelocity.Velocity = (UserInputService:GetMouseDelta() * flySpeed) + Vector3.new(0, 50, 0)
-            end
-        end)
-    else
-        local bodyVelocity = humanoidRootPart:FindFirstChildOfClass("BodyVelocity")
-        if bodyVelocity then
-            bodyVelocity:Destroy()
-        end
-    end
-end
-
-local function adjustSpeed(enabled, speed)
-    if enabled then
-        humanoid.WalkSpeed = speed
-    else
-        humanoid.WalkSpeed = 16
-    end
-end
-
-local function toggleAimbot(enabled)
-    if enabled then
-        RunService.RenderStepped:Connect(function()
-            if aimbotEnabled then
-                local mouse = player:GetMouse()
-                -- Aim at target logic here
-            end
-        end)
-    end
-end
-
-local function toggleAmmo(enabled)
-    if enabled then
-        print("Ammo management enabled")
-    end
-end
-
-local function setupAntiKick(enabled)
-    if enabled then
-        local player = Players.LocalPlayer
-        local function onPlayerChatted(message)
-            if message:lower() == "kick" then
-                print("Attempted kick detected")
+-- Fly Toggle
+local FlyToggle = MainTab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "fly",
+    Callback = function(Value)
+        _G.fly = Value
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character
+        if char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                if Value then
+                    local bodyVelocity = Instance.new("BodyVelocity", hrp)
+                    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                    bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    _G.flyBV = bodyVelocity
+                else
+                    if _G.flyBV then
+                        _G.flyBV:Destroy()
+                    end
+                end
             end
         end
-        player.Chatted:Connect(onPlayerChatted)
     end
-end
+})
+
+-- Speed Input
+local SpeedInput = MainTab:CreateInput({
+    Name = "Speed",
+    PlaceholderText = "1-500",
+    RemoveTextAfterFocusLost = true,
+    Callback = function(Text)
+        local speed = tonumber(Text)
+        if speed then
+            local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+            if humanoid then
+                humanoid.WalkSpeed = speed
+            end
+        else
+            print("Invalid input for Speed")
+        end
+    end
+})
+
+-- Weapon Modification (example: change fire rate)
+local WeaponSection = MainTab:CreateSection("Weapon Mods")
+local FireRateSlider = WeaponSection:CreateSlider({
+    Name = "Fire Rate Slider",
+    Range = {0.1, 10},
+    Increment = 0.1,
+    Suffix = "Rate",
+    CurrentValue = 1,
+    Flag = "firerate",
+    Callback = function(Value)
+        -- Example: Adjust fire rate of the weapon
+        -- Make sure to replace 'YourWeapon' with the actual weapon object
+        local weapon = game.Players.LocalPlayer.Character:FindFirstChild("YourWeapon")
+        if weapon then
+            weapon.FireRate = Value
+        end
+    end
+})
+
+-- KillAll Button
+local KillAllButton = MainTab:CreateButton({
+    Name = "Kill All Players",
+    Callback = function()
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+                local char = player.Character
+                if char then
+                    local humanoid = char:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid.Health = 0
+                    end
+                end
+            end
+        end
+    end
+})
+
+local TPTab = Window:CreateTab("🏝 Teleports", nil)
+-- Implement teleport buttons as needed
+
+local MiscTab = Window:CreateTab("🎲 Misc", nil)
+-- Add additional functionalities here
